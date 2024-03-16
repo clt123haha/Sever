@@ -73,7 +73,7 @@ private:
 class Task
 {
 public:
-    Task(void (*function)(void*), int timeout) :function(function), time(timeout),timeout(timeout)
+    Task(void (*function)(void*), int timeout) :function(function), time(timeout),timeout(timeout),redo(false)
     {
 
     }
@@ -98,7 +98,19 @@ public:
     {
         function(arg);
     }
+
+    void setRedo(bool re)
+    {
+        redo = re;
+    }
+
+    bool getRedo()
+    {
+        return redo;
+    }
+
 private:
+    bool redo;
     int timeout;
     void (*function)(void*);
     TimerNode time;
@@ -173,11 +185,14 @@ private:
             {
                 cout << "Time Out" << endl;
                 
-                //加入重做
-                /*pthread_mutex_lock(&(pool->mutex));
-                pool->tasks.push(task);
-                pool->taskArgs.push(arg);
-                pthread_mutex_unlock(&(pool->mutex));*/
+                if (task.getRedo())
+                {
+                    pthread_mutex_lock(&(pool->mutex));
+                    pool->tasks.push(task);
+                    pool->taskArgs.push(arg);
+                    pthread_mutex_unlock(&(pool->mutex));
+                }
+                
             }
                 
         }
